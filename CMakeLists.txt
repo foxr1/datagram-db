@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(gsm2)
-set(CMAKE_CXX_STANDARD 23)
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build for both architectures" FORCE)
+endif()
+set(CMAKE_CXX_STANDARD 20)
 
 find_package(Python3 3.8 COMPONENTS Interpreter Development.Module)
 if (Python3_FOUND)
@@ -96,7 +99,7 @@ include_directories(submodules/tabulate/include)
 
 
 #<<<<<<< HEAD
-add_library(yaucl_hashing OBJECT
+add_library(yaucl_hashing STATIC
         ${YAUCL_BASE_DIR}/include/yaucl/hashing/evaluateHashes.h
         ${YAUCL_BASE_DIR}/src/yaucl/hashing/evaluateHashes.c
         ${YAUCL_BASE_DIR}/src/yaucl/hashing/hash_combine.cpp
@@ -109,7 +112,7 @@ add_library(yaucl_hashing OBJECT
 target_include_directories(yaucl_hashing PUBLIC ${YAUCL_BASE_DIR}/include/yaucl/hashing/ ${CMAKE_CURRENT_BINARY_DIR})
 
 
-add_library(yaucl_structures OBJECT #${YAUCL_BASE_DIR}/src/yaucl/structures/StringPrevNext.cpp
+add_library(yaucl_structures STATIC #${YAUCL_BASE_DIR}/src/yaucl/structures/StringPrevNext.cpp
      #   ${YAUCL_BASE_DIR}/include/yaucl/structures/StringPrevNext.h
       #  ${YAUCL_BASE_DIR}/src/yaucl/structures/DoublePrevNext.cpp
        # ${YAUCL_BASE_DIR}/include/yaucl/structures/DoublePrevNext.h
@@ -124,7 +127,7 @@ add_library(yaucl_structures OBJECT #${YAUCL_BASE_DIR}/src/yaucl/structures/Stri
 target_link_libraries(yaucl_structures roaring)
 
 
-add_library(yaucl_graph OBJECT
+add_library(yaucl_graph STATIC
         ${YAUCL_BASE_DIR}/src/yaucl/graphs/adjacency_graph.cpp
         ${YAUCL_BASE_DIR}/include/yaucl/graphs/adjacency_graph.h
         ${YAUCL_BASE_DIR}/include/yaucl/graphs/FlexibleGraph.h
@@ -150,7 +153,7 @@ add_library(yaucl_graph OBJECT
         )
 target_link_libraries(yaucl_graph  yaucl_hashing roaring)
 
-add_library(gsm_script OBJECT ./antlr4/scriptv2/scriptBaseListener.cpp
+add_library(gsm_script STATIC ./antlr4/scriptv2/scriptBaseListener.cpp
         ./antlr4/scriptv2/scriptBaseVisitor.cpp
         ./antlr4/scriptv2/scriptLexer.cpp
         ./antlr4/scriptv2/scriptParser.cpp
@@ -159,7 +162,7 @@ add_library(gsm_script OBJECT ./antlr4/scriptv2/scriptBaseListener.cpp
         ./src/scriptv2/ScriptAST.cpp ./include/scriptv2/ScriptAST.h ./src/scriptv2/Funzione.cpp ./include/scriptv2/Funzione.h ./src/scriptv2/Javification.cpp ./include/scriptv2/Javification.h ./src/scriptv2/ScriptASTVisitor.cpp ./include/scriptv2/ScriptASTVisitor.h)
 target_link_libraries(gsm_script antlr4_static)
 
-add_library(gsm2 OBJECT antlr4/graph_grammar/simple_graph_grammarLexer.cpp antlr4/graph_grammar/simple_graph_grammarParser.cpp antlr4/graph_grammar/simple_graph_grammarListener.cpp  antlr4/graph_grammar/simple_graph_grammarVisitor.cpp src/database/PhiTable.cpp include/database/PhiTable.h src/database/AttributeTable.cpp include/database/AttributeTable.h src/database/SimplifiedFuzzyStringMatching.cpp include/database/SimplifiedFuzzyStringMatching.h src/database/LinearGSM.cpp include/database/LinearGSM.h src/database/ActivityTable.cpp include/database/ActivityTable.h src/result.cpp include/result.h src/database/gsm_indices.cpp include/database/gsm_indices.h src/queries/DataQuery.cpp include/queries/DataQuery.h src/database/gsm_object_xi_content.cpp include/database/gsm_object_xi_content.h include/simple_pair_hash.h src/queries/DataPredicate.cpp include/queries/DataPredicate.h
+add_library(gsm2 STATIC antlr4/graph_grammar/simple_graph_grammarLexer.cpp antlr4/graph_grammar/simple_graph_grammarParser.cpp antlr4/graph_grammar/simple_graph_grammarListener.cpp  antlr4/graph_grammar/simple_graph_grammarVisitor.cpp src/database/PhiTable.cpp include/database/PhiTable.h src/database/AttributeTable.cpp include/database/AttributeTable.h src/database/SimplifiedFuzzyStringMatching.cpp include/database/SimplifiedFuzzyStringMatching.h src/database/LinearGSM.cpp include/database/LinearGSM.h src/database/ActivityTable.cpp include/database/ActivityTable.h src/result.cpp include/result.h src/database/gsm_indices.cpp include/database/gsm_indices.h src/queries/DataQuery.cpp include/queries/DataQuery.h src/database/gsm_object_xi_content.cpp include/database/gsm_object_xi_content.h include/simple_pair_hash.h src/queries/DataPredicate.cpp include/queries/DataPredicate.h
         #src/database/AtomizingPipeline2.cpp include/database/AtomizingPipeline2.h
         ${ELPP_BASE_DIR}/src/easylogging++.cc ${ELPP_BASE_DIR}/src/easylogging++.h
         src/database/GSMPatternVisitor.cpp include/database/GSMPatternVisitor.h src/database/GraphEdgeMatchTable.cpp include/database/GraphEdgeMatchTable.h src/database/SimpleTable.cpp include/database/SimpleTable.h include/database/gsm_object.h src/database/gsm_object.cpp include/database/gsm_inmemory_db.h src/database/gsm_inmemory_db.cpp include/database/utility.h src/queries/preserve_results.cpp include/queries/preserve_results.h src/queries/delta_updates.cpp include/queries/delta_updates.h src/queries/closure.cpp include/queries/closure.h src/database/GSMIso.cpp include/database/GSMIso.h include/parsing.h include/configuration/base.h src/configuration/Serialisation.cpp include/configuration/Serialisation.h src/configuration/Configuration.cpp include/configuration/Configuration.h src/configuration/Environment.cpp include/configuration/Environment.h

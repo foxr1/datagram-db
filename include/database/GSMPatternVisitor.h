@@ -598,14 +598,14 @@ public:
         node_match nm;
         bool casus;
         std::string tmpType = tmp.type().name();
-        if (tmpType.contains("tuple")) {
+        if (tmpType.find("tuple") != std::string::npos) {
             std::tie(em, nm, casus) = std::any_cast<std::tuple<edge_match,node_match,bool>>(tmp);
             if (casus) {
                 result.out.emplace_back(em, nm);
             } else {
                 result.in.emplace_back(nm, em);
             }
-        } else if (tmpType.contains("edge_match")) {
+        } else if (tmpType.find("edge_match") != std::string::npos) {
             result.hook.emplace_back(std::any_cast<edge_match>(tmp));
         }
     }

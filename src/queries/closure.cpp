@@ -477,7 +477,7 @@ void closure::interpret_closure_set(rewrite_expr *ptr,
             NestedResultTable NAME = I.interpret_closure_evaluate(ptr->pi_key_arg_or_then.get(), false, true, NestedResultTable::variant_type_cpp::RT_STRING);
 
             std::function<void(size_t, size_t, const std::string&, const std::vector<gsm_object_xi_content>&)> resolve = [this,&I,&ptr](size_t graph_id, size_t var, const std::string& x, const std::vector<gsm_object_xi_content>& val) {
-                if (x.contains("is is"))
+                if (x.find("is is") != std::string::npos)
                     std::cout << "ERROR" << std::endl;
                 delta_updates_per_graph[graph_id].delta_plus_db.generateId(var).phi[x] = val;
             };

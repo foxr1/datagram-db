@@ -344,7 +344,7 @@ namespace script {
 
         std::any ScriptVisitor::visitAtom_number(scriptParser::Atom_numberContext *context) {
             std::string val = context->NUMBER()->getSymbol()->getText();
-            if (val.contains("e") || val.contains(".")) {
+            if (val.find("e") != std::string::npos || val.find(".") != std::string::npos) {
                 return {script::structures::ScriptAST::double_(std::stod(val))};
             } else {
                 return {script::structures::ScriptAST::integer_(std::stoll(val))};

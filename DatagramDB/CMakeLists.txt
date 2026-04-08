@@ -1,17 +1,15 @@
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     cmake_minimum_required(VERSION 3.22.1)
     project(gsm2)
-    set(CMAKE_CXX_STANDARD 23)
-    set(WITH_DEMO false)
+    if(APPLE)
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build for both architectures" FORCE)
+    endif()
+    set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
-set(PYBIND11_NEWPYTHON ON)
-set(PYBIND11_PYTHON_VERSION 3.8 CACHE STRING "")
-set(PYBIND11_PYTHON_VERSION 3)
-set(PYBIND11_FINDPYTHON ON)
-find_package(Python3 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
-# include_directories(${Python3_INCLUDE_DIRS}) # Moved to target level to avoid header collisions (Token.h)
+find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
 
 include(FetchContent)
 
@@ -70,15 +68,6 @@ endif()
 
 include(CTest)
 
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    message(WARNING "Compiling in debug mode")
-    add_compile_definitions(DEBUG)
-    set(CMAKE_CXX_FLAGS_DEBUG "-g")
-else()
-    message(WARNING "Compiling in optimized mode. Level=3")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
-
 # args fallback
 set(ARGS_LOCAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../submodules/args")
 if (NOT EXISTS "${ARGS_LOCAL_PATH}/args.hxx")
@@ -122,16 +111,13 @@ include_directories(${YAUCL_BASE_DIR}/submodules/CRoaring/include)
 
 # Remove redundant fallbacks lower down
 
-
-find_package(pybind11 CONFIG REQUIRED)
-# add_subdirectory(../submodules/pybind11 binbuild/pybind11)
 include_directories(${YAUCL_BASE_DIR}/submodules/antlr4/runtime/Cpp/runtime/src)
 include_directories(${YAUCL_BASE_DIR}/antlr4/cpp/antlr4)
 
 
 #<<<<<<< HEAD
 if (NOT TARGET yaucl_hashing)
-add_library(yaucl_hashing OBJECT
+add_library(yaucl_hashing STATIC
         ${YAUCL_BASE_DIR}/include/yaucl/hashing/evaluateHashes.h
         ${YAUCL_BASE_DIR}/src/yaucl/hashing/evaluateHashes.c
         ${YAUCL_BASE_DIR}/src/yaucl/hashing/hash_combine.cpp
@@ -145,7 +131,7 @@ target_include_directories(yaucl_hashing PUBLIC ${YAUCL_BASE_DIR}/include/yaucl/
 endif()
 
 if (NOT TARGET yaucl_structures)
-add_library(yaucl_structures OBJECT # ${YAUCL_BASE_DIR}/src/yaucl/structures/StringPrevNext.cpp
+add_library(yaucl_structures STATIC # ${YAUCL_BASE_DIR}/src/yaucl/structures/StringPrevNext.cpp
      #   ${YAUCL_BASE_DIR}/include/yaucl/structures/StringPrevNext.h
       #  ${YAUCL_BASE_DIR}/src/yaucl/structures/DoublePrevNext.cpp
        # ${YAUCL_BASE_DIR}/include/yaucl/structures/DoublePrevNext.h
@@ -161,7 +147,7 @@ target_link_libraries(yaucl_structures roaring)
 endif()
 
 if (NOT TARGET yaucl_graph)
-add_library(yaucl_graph OBJECT
+add_library(yaucl_graph STATIC
         ${YAUCL_BASE_DIR}/src/yaucl/graphs/adjacency_graph.cpp
         ${YAUCL_BASE_DIR}/include/yaucl/graphs/adjacency_graph.h
         ${YAUCL_BASE_DIR}/include/yaucl/graphs/FlexibleGraph.h
@@ -189,7 +175,7 @@ target_link_libraries(yaucl_graph  yaucl_hashing roaring)
 endif()
 
 if (NOT TARGET gsm_script)
-add_library(gsm_script OBJECT ../antlr4/scriptv2/scriptBaseListener.cpp
+add_library(gsm_script STATIC ../antlr4/scriptv2/scriptBaseListener.cpp
         ../antlr4/scriptv2/scriptBaseVisitor.cpp
         ../antlr4/scriptv2/scriptLexer.cpp
         ../antlr4/scriptv2/scriptParser.cpp
@@ -207,7 +193,7 @@ target_link_libraries(gsm_script antlr4_static)
 endif()
 
 if (NOT TARGET gsm2)
-add_library(gsm2 OBJECT
+add_library(gsm2 STATIC
         ../antlr4/graph_grammar/simple_graph_grammarLexer.cpp
         ../antlr4/graph_grammar/simple_graph_grammarParser.cpp
         ../antlr4/graph_grammar/simple_graph_grammarListener.cpp
