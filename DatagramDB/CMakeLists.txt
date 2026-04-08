@@ -1,18 +1,73 @@
-cmake_minimum_required(VERSION 3.22.1)
-project(gsm2)
-set(CMAKE_CXX_STANDARD 23)
-set(WITH_DEMO false)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    cmake_minimum_required(VERSION 3.22.1)
+    project(gsm2)
+    set(CMAKE_CXX_STANDARD 23)
+    set(WITH_DEMO false)
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 set(PYBIND11_NEWPYTHON ON)
 set(PYBIND11_PYTHON_VERSION 3.8 CACHE STRING "")
 set(PYBIND11_PYTHON_VERSION 3)
 set(PYBIND11_FINDPYTHON ON)
-find_package(PythonInterp REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
-include_directories(../submodules/easylogging/src)
-add_subdirectory(../submodules/easylogging binbuild/easylogging)
+find_package(Python3 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
+# include_directories(${Python3_INCLUDE_DIRS}) # Moved to target level to avoid header collisions (Token.h)
 
-Include(FetchContent)
+include(FetchContent)
+
+# CRoaring fallback
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../submodules/yaucl/submodules/CRoaring/CMakeLists.txt")
+    FetchContent_Declare(
+            roaring
+            GIT_REPOSITORY https://github.com/RoaringBitmap/CRoaring.git
+            GIT_TAG v3.0.0
+    )
+    FetchContent_MakeAvailable(roaring)
+endif()
+
+# ANTLR4 fallback
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../submodules/yaucl/submodules/antlr4/runtime/Cpp/CMakeLists.txt")
+    FetchContent_Declare(
+            antlr4_runtime
+            GIT_REPOSITORY https://github.com/antlr/antlr4.git
+            GIT_TAG 4.13.1
+            SOURCE_SUBDIR runtime/Cpp
+    )
+    FetchContent_MakeAvailable(antlr4_runtime)
+endif()
+
+set(YAUCL_LOCAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../submodules/yaucl")
+if (NOT EXISTS "${YAUCL_LOCAL_PATH}/CMakeLists.txt")
+    FetchContent_Declare(
+            yaucl
+            GIT_REPOSITORY https://github.com/foxr1/yaucl.git
+            GIT_TAG fix-macos-build
+            GIT_SUBMODULES ""
+            PATCH_COMMAND sed -i.bak "s|add_subdirectory(submodules/CRoaring)|#|" CMakeLists.txt && sed -i.bak "s|add_subdirectory(submodules/antlr4/runtime/Cpp)|#|" CMakeLists.txt
+    )
+    FetchContent_MakeAvailable(yaucl)
+    set(YAUCL_BASE_DIR "${yaucl_SOURCE_DIR}")
+else()
+    set(YAUCL_BASE_DIR "${YAUCL_LOCAL_PATH}")
+endif()
+
+# Easylogging++ fallback
+set(ELPP_LOCAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../submodules/easylogging")
+if (NOT EXISTS "${ELPP_LOCAL_PATH}/CMakeLists.txt")
+    FetchContent_Declare(
+            easylogging
+            GIT_REPOSITORY https://github.com/foxr1/easyloggingpp.git
+            GIT_TAG fix-macos-build
+    )
+    FetchContent_MakeAvailable(easylogging)
+    set(ELPP_BASE_DIR "${easylogging_SOURCE_DIR}")
+    include_directories(${ELPP_BASE_DIR}/src)
+else()
+    set(ELPP_BASE_DIR "${ELPP_LOCAL_PATH}")
+    include_directories(${ELPP_BASE_DIR}/src)
+    add_subdirectory(${ELPP_BASE_DIR} binbuild/easylogging)
+endif()
+
 include(CTest)
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -24,77 +79,116 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
-include_directories(../submodules/args)
+# args fallback
+set(ARGS_LOCAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../submodules/args")
+if (NOT EXISTS "${ARGS_LOCAL_PATH}/args.hxx")
+    FetchContent_Declare(
+            args
+            GIT_REPOSITORY https://github.com/Taywee/args.git
+            GIT_TAG 6.2.2
+    )
+    FetchContent_MakeAvailable(args)
+    set(ARGS_BASE_DIR "${args_SOURCE_DIR}")
+    include_directories(${ARGS_BASE_DIR})
+else()
+    set(ARGS_BASE_DIR "${ARGS_LOCAL_PATH}")
+    include_directories(${ARGS_BASE_DIR})
+endif()
+
 include_directories(../include)
 include_directories(../antlr4)
-include_directories(../submodules/yaucl/submodules/magic_enum/include)
-include_directories(../submodules/yaucl/include)
-include_directories(../submodules/yaucl/submodules/json/include)
-include_directories(../submodules/yaucl/submodules/CRoaring/cpp)
-include_directories(../submodules/yaucl/submodules/CRoaring/include)
-add_subdirectory(../submodules/yaucl/submodules/CRoaring binbuild/croaring)
-add_subdirectory(../submodules/yaucl/submodules/antlr4/runtime/Cpp binbuild/antlrcpp)
-add_subdirectory(../submodules/pybind11 binbuild/pybind11)
-include_directories(../submodules/yaucl/submodules/antlr4/runtime/Cpp/runtime/src)
-include_directories(../submodules/yaucl/antlr4/cpp/antlr4)
-include_directories(../submodules/tabulate/include)
+
+# tabulate fallback
+set(TABULATE_LOCAL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../submodules/tabulate")
+if (NOT EXISTS "${TABULATE_LOCAL_PATH}/include/tabulate/tabulate.hpp")
+    FetchContent_Declare(
+            tabulate
+            GIT_REPOSITORY https://github.com/p-ranav/tabulate.git
+            GIT_TAG v1.5
+    )
+    FetchContent_MakeAvailable(tabulate)
+    set(TABULATE_BASE_DIR "${tabulate_SOURCE_DIR}")
+    include_directories(${TABULATE_BASE_DIR}/include)
+else()
+    set(TABULATE_BASE_DIR "${TABULATE_LOCAL_PATH}")
+    include_directories(${TABULATE_BASE_DIR}/include)
+endif()
+
+include_directories(${YAUCL_BASE_DIR}/submodules/magic_enum/include)
+include_directories(${YAUCL_BASE_DIR}/include)
+include_directories(${YAUCL_BASE_DIR}/submodules/json/include)
+include_directories(${YAUCL_BASE_DIR}/submodules/CRoaring/cpp)
+include_directories(${YAUCL_BASE_DIR}/submodules/CRoaring/include)
+
+# Remove redundant fallbacks lower down
+
+
+find_package(pybind11 CONFIG REQUIRED)
+# add_subdirectory(../submodules/pybind11 binbuild/pybind11)
+include_directories(${YAUCL_BASE_DIR}/submodules/antlr4/runtime/Cpp/runtime/src)
+include_directories(${YAUCL_BASE_DIR}/antlr4/cpp/antlr4)
 
 
 #<<<<<<< HEAD
+if (NOT TARGET yaucl_hashing)
 add_library(yaucl_hashing OBJECT
-        ../submodules/yaucl/include/yaucl/hashing/evaluateHashes.h
-        ../submodules/yaucl/src/yaucl/hashing/evaluateHashes.c
-        ../submodules/yaucl/src/yaucl/hashing/hash_combine.cpp
-        ../submodules/yaucl/include/yaucl/hashing/hash_combine.h
-        ../submodules/yaucl/src/yaucl/hashing/hashing.cpp
-        ../submodules/yaucl/include/yaucl/hashing/hashing.h
-        ../submodules/yaucl/include/yaucl/hashing/pair_hash.h
-        ../submodules/yaucl/include/yaucl/hashing/vector_hash.h
-        ../submodules/yaucl/include/yaucl/hashing/uset_hash.h)
-target_include_directories(yaucl_hashing PUBLIC ${CMAKE_SOURCE_DIR}/include/yaucl/hashing/ ${CMAKE_CURRENT_BINARY_DIR})
+        ${YAUCL_BASE_DIR}/include/yaucl/hashing/evaluateHashes.h
+        ${YAUCL_BASE_DIR}/src/yaucl/hashing/evaluateHashes.c
+        ${YAUCL_BASE_DIR}/src/yaucl/hashing/hash_combine.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/hashing/hash_combine.h
+        ${YAUCL_BASE_DIR}/src/yaucl/hashing/hashing.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/hashing/hashing.h
+        ${YAUCL_BASE_DIR}/include/yaucl/hashing/pair_hash.h
+        ${YAUCL_BASE_DIR}/include/yaucl/hashing/vector_hash.h
+        ${YAUCL_BASE_DIR}/include/yaucl/hashing/uset_hash.h)
+target_include_directories(yaucl_hashing PUBLIC ${YAUCL_BASE_DIR}/include/yaucl/hashing/ ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
-
-add_library(yaucl_structures OBJECT #../submodules/yaucl/src/yaucl/structures/StringPrevNext.cpp
-     #   ../submodules/yaucl/include/yaucl/structures/StringPrevNext.h
-      #  ../submodules/yaucl/src/yaucl/structures/DoublePrevNext.cpp
-       # ../submodules/yaucl/include/yaucl/structures/DoublePrevNext.h
-        ../submodules/yaucl/include/yaucl/structures/setoids/set_comparators.h
-        ../submodules/yaucl/include/yaucl/structures/setoids/set_partitioning.h
-        ../submodules/yaucl/include/yaucl/structures/setoids/basics.h
-        ../submodules/yaucl/include/yaucl/structures/indexed/BlockOfRecordsIndexedTable.h
-        ../submodules/yaucl/src/yaucl/structures/RoaringBitmapWrapper.cpp
-        ../submodules/yaucl/src/yaucl/structures/NAryTree.cpp
-        ../submodules/yaucl/include/yaucl/structures/NAryTree.h
-        ../submodules/yaucl/include/yaucl/structures/RelationalTables.h)
+if (NOT TARGET yaucl_structures)
+add_library(yaucl_structures OBJECT # ${YAUCL_BASE_DIR}/src/yaucl/structures/StringPrevNext.cpp
+     #   ${YAUCL_BASE_DIR}/include/yaucl/structures/StringPrevNext.h
+      #  ${YAUCL_BASE_DIR}/src/yaucl/structures/DoublePrevNext.cpp
+       # ${YAUCL_BASE_DIR}/include/yaucl/structures/DoublePrevNext.h
+        ${YAUCL_BASE_DIR}/include/yaucl/structures/setoids/set_comparators.h
+        ${YAUCL_BASE_DIR}/include/yaucl/structures/setoids/set_partitioning.h
+        ${YAUCL_BASE_DIR}/include/yaucl/structures/setoids/basics.h
+        ${YAUCL_BASE_DIR}/include/yaucl/structures/indexed/BlockOfRecordsIndexedTable.h
+        ${YAUCL_BASE_DIR}/src/yaucl/structures/RoaringBitmapWrapper.cpp
+        ${YAUCL_BASE_DIR}/src/yaucl/structures/NAryTree.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/structures/NAryTree.h
+        ${YAUCL_BASE_DIR}/include/yaucl/structures/RelationalTables.h)
 target_link_libraries(yaucl_structures roaring)
+endif()
 
-
+if (NOT TARGET yaucl_graph)
 add_library(yaucl_graph OBJECT
-        ../submodules/yaucl/src/yaucl/graphs/adjacency_graph.cpp
-        ../submodules/yaucl/include/yaucl/graphs/adjacency_graph.h
-        ../submodules/yaucl/include/yaucl/graphs/FlexibleGraph.h
-        ../submodules/yaucl/include/yaucl/graphs/NodeLabelBijectionGraph.h
-        ../submodules/yaucl/src/yaucl/graphs/graph_join_pm_algorithms.cpp
-        ../submodules/yaucl/src/yaucl/graphs/graph_join_pm_conversion.cpp
-        ../submodules/yaucl/include/yaucl/graphs/NodeLabelBijectionFA.h
-        ../submodules/yaucl/src/yaucl/graphs/adjacency_entry.cpp
-        ../submodules/yaucl/include/yaucl/graphs/adjacency_entry.h
-        ../submodules/yaucl/src/yaucl/graphs/graph_join_pm.cpp
-        ../submodules/yaucl/include/yaucl/graphs/graph_join_pm.h
-        ../submodules/yaucl/include/yaucl/graphs/graph_join_pm.h
-        ../submodules/yaucl/src/yaucl/graphs/graph_join_pm_conversion.cpp
-        ../submodules/yaucl/src/yaucl/graphs/graph_join_pm_algorithms.cpp
-        ../submodules/yaucl/src/yaucl/graphs/minimizeDFA.cpp
-        ../submodules/yaucl/include/yaucl/graphs/algorithms/minimizeDFA.h
-        ../submodules/yaucl/include/yaucl/graphs/algorithms/all_cycles.h
-        ../submodules/yaucl/include/yaucl/graphs/algorithms/AllDirectedPaths.h
-        ../submodules/yaucl/src/yaucl/graphs/algorithms/prim.cpp
-        ../submodules/yaucl/include/yaucl/graphs/algorithms/prim.h
-        ../submodules/yaucl/src/yaucl/graphs/algorithms/connected_components.cpp
-        ../submodules/yaucl/include/yaucl/graphs/algorithms/connected_components.h
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/adjacency_graph.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/adjacency_graph.h
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/FlexibleGraph.h
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/NodeLabelBijectionGraph.h
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/graph_join_pm_algorithms.cpp
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/graph_join_pm_conversion.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/NodeLabelBijectionFA.h
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/adjacency_entry.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/adjacency_entry.h
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/graph_join_pm.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/graph_join_pm.h
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/graph_join_pm.h
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/graph_join_pm_conversion.cpp
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/graph_join_pm_algorithms.cpp
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/minimizeDFA.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/algorithms/minimizeDFA.h
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/algorithms/all_cycles.h
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/algorithms/AllDirectedPaths.h
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/algorithms/prim.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/algorithms/prim.h
+        ${YAUCL_BASE_DIR}/src/yaucl/graphs/algorithms/connected_components.cpp
+        ${YAUCL_BASE_DIR}/include/yaucl/graphs/algorithms/connected_components.h
         )
 target_link_libraries(yaucl_graph  yaucl_hashing roaring)
+endif()
 
+if (NOT TARGET gsm_script)
 add_library(gsm_script OBJECT ../antlr4/scriptv2/scriptBaseListener.cpp
         ../antlr4/scriptv2/scriptBaseVisitor.cpp
         ../antlr4/scriptv2/scriptLexer.cpp
@@ -110,7 +204,9 @@ add_library(gsm_script OBJECT ../antlr4/scriptv2/scriptBaseListener.cpp
         ../src/scriptv2/ScriptASTVisitor.cpp
         ../include/scriptv2/ScriptASTVisitor.h)
 target_link_libraries(gsm_script antlr4_static)
+endif()
 
+if (NOT TARGET gsm2)
 add_library(gsm2 OBJECT
         ../antlr4/graph_grammar/simple_graph_grammarLexer.cpp
         ../antlr4/graph_grammar/simple_graph_grammarParser.cpp
@@ -138,8 +234,8 @@ add_library(gsm2 OBJECT
         ../src/queries/DataPredicate.cpp
         ../include/queries/DataPredicate.h
         #src/database/AtomizingPipeline2.cpp include/database/AtomizingPipeline2.h
-        ../submodules/easylogging/src/easylogging++.cc
-        ../submodules/easylogging/src/easylogging++.h
+        ${ELPP_BASE_DIR}/src/easylogging++.cc
+        ${ELPP_BASE_DIR}/src/easylogging++.h
         ../src/database/GSMPatternVisitor.cpp
         ../include/database/GSMPatternVisitor.h
         ../src/database/GraphEdgeMatchTable.cpp
@@ -172,9 +268,12 @@ add_library(gsm2 OBJECT
         ../src/database/SchemaIndexer.cpp
         ../include/database/SchemaIndexer.h)
 target_link_libraries(gsm2 antlr4_static yaucl_structures roaring  yaucl_hashing yaucl_graph )
+endif()
 
 pybind11_add_module(pydatagramdb
         python.cpp)
+
+target_include_directories(pydatagramdb PRIVATE ${Python3_INCLUDE_DIRS})
 
 target_link_libraries(pydatagramdb PRIVATE pybind11::headers pybind11::module antlr4_static yaucl_structures roaring  yaucl_hashing yaucl_graph  gsm2 gsm_script)
 

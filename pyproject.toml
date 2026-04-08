@@ -9,5 +9,6 @@ dependencies = ["networkx==3.4.1","pandas==2.2.3"]
 
 
 [tool.scikit-build]
-wheel.packages = ["python/src/PyDatagramDB"]
+wheel.packages = ["DatagramDB/python/src/PyDatagramDB"]
 cmake.build-type = "Release"
+cmake.source-dir = "."
