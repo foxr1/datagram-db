@@ -437,7 +437,7 @@ StringMap<DPtr<script::structures::ScriptAST>> script::structures::ScriptAST::to
 
         case String: {
             for (size_t i = 0, N = string.size(); i<N; i++) {
-                result[std::to_string(i)] = string_(""+string.at(i));
+                result[std::to_string(i)] = string_(std::string(1, string.at(i)));
             }
             break;
         }
@@ -581,7 +581,7 @@ void script::structures::ScriptAST::setContext(DPtr<std::unordered_map<std::stri
 }
 
 #include <math.h>
-#include "scriptv2/ScriptVisitor.h"
+#include "scriptv2/ScriptASTVisitor.h"
 #include "yaucl/strings/string_utils.h"
 #include "yaucl/functional/iterators.h"
 #include "yaucl/structures/setoids/basics.h"

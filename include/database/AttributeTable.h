@@ -89,7 +89,7 @@ namespace gsm2 {
             } else if (std::holds_alternative<long long>(lhs)) {
                 return 1.0 / ( (std::abs((double)std::get<long long>(lhs)- (double)std::get<long long>(rhs)))/c + 1.0);
             }
-
+            return 0.0;
         }
 
         struct AttributeTable {

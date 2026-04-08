@@ -3,7 +3,8 @@
 //
 #include <queries/closure.h>
 #include "yaucl/graphs/NodeLabelBijectionGraph.h"
-#include <scriptv2/ScriptVisitor.h>
+#include <scriptv2/ScriptASTVisitor.h>
+#include <scriptv2/scriptVisitor.h>
 #include <database/SchemaIndexer.h>
 #include <scriptv2/Funzione.h>
 #include "scriptv2/scriptLexer.h"

@@ -121,7 +121,7 @@ void closure::generateOODbFromMaterialisedViews(gsm2::tables::LinearGSM& newDB) 
             g.topologicalSortUtil(start_from, visited, Stack);
         }
         for (size_t i = 0; i < g.V_size; i++)
-            if (!visited.contains(i))
+            if (!visited.contains(static_cast<uint64_t>(i)))
                 g.topologicalSortUtil(i, visited, Stack);
         bool firstVisit = true;
         std::reverse(Stack.begin(), Stack.end());
@@ -257,7 +257,7 @@ void closure::generateGraphsFromMaterialisedViews(std::vector<FlexibleGraph<std:
             g.g.topologicalSortUtil(start_from, visited, Stack);
         }
         for (size_t i = 0; i < g.g.V_size; i++)
-            if (!visited.contains(i))
+            if (!visited.contains(static_cast<uint64_t>(i)))
                 g.g.topologicalSortUtil(i, visited, Stack);
         bool firstVisit = true;
         std::reverse(Stack.begin(), Stack.end());
@@ -545,7 +545,7 @@ void closure::new_data_slate() {
     forloading = new gsm2::tables::LinearGSM();
 }
 
-#include <scriptv2/ScriptVisitor.h>
+#include <scriptv2/ScriptASTVisitor.h>
 #include <scriptv2/ScriptAST.h>
 
 NestedResultTable closure::Interpret::interpret_closure_evaluate(rewrite_expr *ptr, bool force, bool node_or_edge_otherwise, NestedResultTable::variant_type_cpp expected) /*const*/ {
@@ -809,7 +809,7 @@ static inline bool var_extractor(const test_pred& ptr,
         if (offsetForValue != (size_t)-1)
             break;
     }
-    if ((offsetForValue == (size_t)-1)) {
+    if (offsetForValue == (size_t)-1) {
         if (offsetForStar == -1) {
             for (size_t i = 0, N = table.datum.at(0).size(); i<N; i++) {
                 if (table.datum.at(0).at(i).isNested) {
@@ -818,7 +818,7 @@ static inline bool var_extractor(const test_pred& ptr,
                 }
             }
         }
-        if ((offsetForStar==-1))
+        if (offsetForStar == -1)
             return false;
         DEBUG_ASSERT(!table.datum.empty());
         DEBUG_ASSERT(table.datum.at(0).at(offsetForStar).isNested);

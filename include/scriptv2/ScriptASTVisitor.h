@@ -2,8 +2,8 @@
 // Created by giacomo on 10/04/23.
 //
 
-#ifndef GSM_GSQL_SCRIPTVISITOR_H
-#define GSM_GSQL_SCRIPTVISITOR_H
+#ifndef GSM_GSQL_SCRIPTASTVISITOR_H
+#define GSM_GSQL_SCRIPTASTVISITOR_H
 
 
 class closure;

@@ -107,8 +107,8 @@ add_library(gsm_script OBJECT ../antlr4/scriptv2/scriptBaseListener.cpp
         ../include/scriptv2/Funzione.h
         ../src/scriptv2/Javification.cpp
         ../include/scriptv2/Javification.h
-        ../src/scriptv2/ScriptVisitor.cpp
-        ../include/scriptv2/ScriptVisitor.h)
+        ../src/scriptv2/ScriptASTVisitor.cpp
+        ../include/scriptv2/ScriptASTVisitor.h)
 target_link_libraries(gsm_script antlr4_static)
 
 add_library(gsm2 OBJECT

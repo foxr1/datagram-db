@@ -24,6 +24,8 @@
 //
 
 #include "database/AttributeTable.h"
+#include <algorithm>
+#include <iterator>
 
 namespace gsm2 {
     namespace tables {
@@ -208,8 +210,12 @@ namespace gsm2 {
                         });
 
                         if (lb != end) {
-                            const record* ub = std::upper_bound(begin, end, prop_rightValue, [&](const union_type &value, const record &r) {
-                                return resolve(r) > value;
+                            const record* ub = std::upper_bound(begin, end, prop_rightValue, [&](const auto &a, const auto &b) {
+                                if constexpr (std::is_same_v<std::decay_t<decltype(a)>, record>) {
+                                    return resolve(a) > b;
+                                } else {
+                                    return resolve(b) > a;
+                                }
                             });
 
                             auto tmpLeft = lb;
