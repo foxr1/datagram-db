@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "PyDatagramDB"
 version = "0.0.2"
-dependencies = ["networkx==3.4.1","pandas==2.2.3"]
+dependencies = ["networkx>=3.0","pandas>=2.0.0"]
 
 
 [tool.scikit-build]
