@@ -81,6 +81,27 @@ struct closure {
     std::vector<gsm_object_xi_content> empty_content;
     bool isMaterialised = false;
 
+    // Opt-in per-rule fire-count tracing (set via Configuration::trace_log or GSM_TRACE).
+    // Empty trace_path keeps every code path identical to the untraced build.
+    std::string trace_path;
+    struct rule_trace_counters {
+        size_t rows_instantiated = 0, rows_applied = 0,
+               skip_removed_filter = 0, skip_where = 0, skip_vertex_removed = 0;
+    };
+    std::map<std::pair<size_t, std::string>, rule_trace_counters> trace_counters;
+    inline void dump_trace() const {
+        if (trace_path.empty()) return;
+        std::ofstream f{trace_path};
+        std::unordered_map<std::string, size_t> order;
+        for (size_t i = 0; i < vl.size(); i++) order[vl.at(i).pattern_name] = i;
+        f << "graph,pattern,run_order,instantiated,applied,skip_removed,skip_where,skip_vertex_removed\n";
+        for (const auto& [key, c] : trace_counters) {
+            f << key.first << "," << key.second << "," << order[key.second] << ","
+              << c.rows_instantiated << "," << c.rows_applied << "," << c.skip_removed_filter << ","
+              << c.skip_where << "," << c.skip_vertex_removed << "\n";
+        }
+    }
+
     void new_data_slate();
 
     void asObjects(std::vector<std::vector<gsm_object>>& graphs) const {
@@ -529,6 +550,17 @@ struct closure {
             pr.instantiate_morphisms(vl, verbose, nodeVars, edgeVars, output_folder);
             auto nmorph_end = std::chrono::high_resolution_clock::now();
             generate_nested_morphisms = std::chrono::duration<double, std::milli>(nmorph_end-nmorph_start).count();
+        }
+
+        if (!trace_path.empty()) {
+            trace_counters.clear();
+            for (size_t graph_id = 0; graph_id < pr.morphisms.size(); graph_id++) {
+                for (const auto& [pattern_name, schema_and_rows] : pr.morphisms.at(graph_id)) {
+                    auto& c = trace_counters[{graph_id, pattern_name}];
+                    for (const auto& [vertex, table] : schema_and_rows.second)
+                        c.rows_instantiated += table.datum.size();
+                }
+            }
         }
 
         // Only afterwards, we are applying all of the transformations for each of the matches collected in the tables as morphisms
@@ -1223,6 +1255,7 @@ public:
 //            rewriteOverAllPatterns(hasDelRewrite, graph_id, morphs, updates, std::numeric_limits<size_t>::max());
             rewriteOverAllPatterns(hasDelRewrite, graph_id, morphs, updates, -1);
         }
+        dump_trace();
     }
 
     void reinitAndClearNestedIndices();
@@ -1242,7 +1275,14 @@ public:
             DEBUG_ASSERT(pattern.var.size() == 1);
 
             // Ignoring the match if this was removed!
-            if (updates.hasXBeenRemoved(vertex)) continue;
+            if (updates.hasXBeenRemoved(vertex)) {
+                if (!trace_path.empty()) {
+                    auto skipped = pattern_result.second.find(vertex);
+                    if (skipped != pattern_result.second.end())
+                        trace_counters[{graph_id, pattern.pattern_name}].skip_vertex_removed += skipped->second.datum.size();
+                }
+                continue;
+            }
 
 //                        auto updatesCopy = updates;
 
@@ -1300,6 +1340,8 @@ public:
                             }
                         }
                         if (skip) {
+                            if (!trace_path.empty())
+                                trace_counters[{graph_id, pattern.pattern_name}].skip_removed_filter++;
                             table_offset++;
                             continue; //next entry
                         }
@@ -1317,6 +1359,8 @@ public:
                         std::cout << "TGraph #" << graph_id << ": applying pattern " << pattern.pattern_name << " for node " << vertex << std::endl;
 #endif
                         if ((I.interpret(pattern.where, 1).empty())) {
+                            if (!trace_path.empty())
+                                trace_counters[{graph_id, pattern.pattern_name}].skip_where++;
                             table_offset++;
                             continue; //next entry
                         }
@@ -1324,6 +1368,9 @@ public:
 #ifdef PRINT_GROUP_MATCHING
                     std::cout << "FGraph #" << graph_id << ": applying pattern " << pattern.pattern_name << " for node " << vertex << std::endl;
 #endif
+
+                    if (!trace_path.empty())
+                        trace_counters[{graph_id, pattern.pattern_name}].rows_applied++;
 
                     for (const auto& operation : pattern.rwr_to) {
                         switch (operation.t) {

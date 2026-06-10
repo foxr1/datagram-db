@@ -6,6 +6,7 @@
 #define GSM2_ENVIRONMENT_H
 
 
+#include <cstdlib>
 #include "queries/closure.h"
 #include "Configuration.h"
 
@@ -34,9 +35,16 @@ struct Environment {
     void prepare_output_folders();
     void benchmark_log() const;
 
+    void apply_trace_settings() {
+        result.trace_path = conf.trace_log;
+        if (const char* env_trace = std::getenv("GSM_TRACE"))
+            result.trace_path = env_trace;
+    }
+
     void run_test( std::vector<std::vector<gsm_object>>&  dbs) {
         schema_loading();
         loading_and_indexing();
+        apply_trace_settings();
         if (!conf.query.has_value()) {
             LOG(ERROR) << "ERROR: a querying environment must specify the patterns to be queried!";
             exit(1);
@@ -56,6 +64,7 @@ struct Environment {
         schema_loading();
         loading_and_indexing();
         prepare_output_folders();
+        apply_trace_settings();
         if (conf.run_script_over_graph != -1) {
             run_script();
         } else {

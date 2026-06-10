@@ -115,6 +115,7 @@ PYBIND11_MODULE(pydatagramdb, m) {
     .def_readwrite("run_script_over_graph", &Configuration::run_script_over_graph)
     .def_readwrite("full_server_output", &Configuration::full_server_output)
     .def_readwrite("benchmark_log", &Configuration::benchmark_log)
+    .def_readwrite("trace_log", &Configuration::trace_log)
     .def_readwrite("conf", &Configuration::conf);
 
     py::class_<Environment>(m, "Environment")

@@ -23,6 +23,8 @@
 // Created by giacomo on 17/09/23.
 //
 
+#include <cstdlib>
+#include <iostream>
 #include "queries/preserve_results.h"
 #include "database/utility.h"
 
@@ -364,6 +366,22 @@ void preserve_results::instantiate_morphisms(const std::vector<node_match> &vl, 
                         loadColumnarTablesFromEdges(optional_match_tables, dst_pattern, inEdge.second, inEdge.first, false);
                 }
             }
+        }
+
+        // Instrumentation only (GSM_TRACE_TABLES): per-pattern input-table sizes ahead of the join
+        if (std::getenv("GSM_TRACE_TABLES")) {
+            std::cerr << "[tables] " << graph_grammar_entry_point.pattern_name
+                      << " n_tables=" << matching_tables.size() << " sizes=[";
+            for (size_t ti = 0; ti < matching_tables.size(); ti++) {
+                if (ti) std::cerr << ",";
+                std::cerr << matching_tables.at(ti).datum.size() << ":(";
+                for (size_t si = 0; si < matching_tables.at(ti).Schema.size(); si++) {
+                    if (si) std::cerr << " ";
+                    std::cerr << matching_tables.at(ti).Schema.at(si);
+                }
+                std::cerr << ")";
+            }
+            std::cerr << "] opt_tables=" << optional_match_tables.size() << std::endl;
         }
 
         /// Now, computing the join across all the tables

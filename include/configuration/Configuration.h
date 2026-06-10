@@ -32,6 +32,7 @@ struct Configuration {
 
     bool                            full_server_output;
     std::string                     benchmark_log;
+    std::string                     trace_log{""}; // per-rule fire-count CSV; empty = tracing off
 
     std::vector<Serialisation>      conf;
 

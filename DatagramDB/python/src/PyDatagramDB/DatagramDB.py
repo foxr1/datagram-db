@@ -4,7 +4,7 @@ from typing import List, Tuple
 import pydatagramdb
 
 class DatagramDB:
-    def __init__(self, data:str, query:str, visualizer:str=None, opt_data_schema:str=None, run_script_over_graph:int=-1, full_server_output:bool=True, isSerializationFull:bool=False, conf:List[Tuple[pydatagramdb.SerialisationType,pydatagramdb.SerialisationStyle]]=None, benchmark_log:str=None):
+    def __init__(self, data:str, query:str, visualizer:str=None, opt_data_schema:str=None, run_script_over_graph:int=-1, full_server_output:bool=True, isSerializationFull:bool=False, conf:List[Tuple[pydatagramdb.SerialisationType,pydatagramdb.SerialisationStyle]]=None, benchmark_log:str=None, trace_log:str=None):
         self.data = str(data) if data is not None else None
         self.isdatafile = os.path.isfile(self.data)
         self.query = str(query) if query is not None else None
@@ -36,6 +36,10 @@ class DatagramDB:
             self.benchmark_log = ""
         else:
             self.benchmark_log = benchmark_log
+        if trace_log is None:
+            self.trace_log = ""
+        else:
+            self.trace_log = str(trace_log)
 
     def run(self):
         conf = pydatagramdb.Configuration()
@@ -50,5 +54,6 @@ class DatagramDB:
         conf.run_script_over_graph = self.run_script_over_graph
         conf.full_server_output = self.full_server_output
         conf.benchmark_log = self.benchmark_log
+        conf.trace_log = self.trace_log
         env = pydatagramdb.Environment(conf)
         env.run()
