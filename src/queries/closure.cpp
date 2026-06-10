@@ -121,7 +121,7 @@ void closure::generateOODbFromMaterialisedViews(gsm2::tables::LinearGSM& newDB) 
             g.topologicalSortUtil(start_from, visited, Stack);
         }
         for (size_t i = 0; i < g.V_size; i++)
-            if (!visited.contains(i))
+            if (!visited.contains(static_cast<uint64_t>(i)))
                 g.topologicalSortUtil(i, visited, Stack);
         bool firstVisit = true;
         std::reverse(Stack.begin(), Stack.end());
@@ -257,7 +257,7 @@ void closure::generateGraphsFromMaterialisedViews(std::vector<FlexibleGraph<std:
             g.g.topologicalSortUtil(start_from, visited, Stack);
         }
         for (size_t i = 0; i < g.g.V_size; i++)
-            if (!visited.contains(i))
+            if (!visited.contains(static_cast<uint64_t>(i)))
                 g.g.topologicalSortUtil(i, visited, Stack);
         bool firstVisit = true;
         std::reverse(Stack.begin(), Stack.end());
@@ -545,7 +545,7 @@ void closure::new_data_slate() {
     forloading = new gsm2::tables::LinearGSM();
 }
 
-#include <scriptv2/ScriptVisitor.h>
+#include <scriptv2/ScriptASTVisitor.h>
 #include <scriptv2/ScriptAST.h>
 
 NestedResultTable closure::Interpret::interpret_closure_evaluate(rewrite_expr *ptr, bool force, bool node_or_edge_otherwise) /*const*/ {

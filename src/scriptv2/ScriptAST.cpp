@@ -583,7 +583,7 @@ void script::structures::ScriptAST::setContext(DPtr<std::unordered_map<std::stri
 }
 
 #include <math.h>
-#include "scriptv2/ScriptVisitor.h"
+#include "scriptv2/ScriptASTVisitor.h"
 #include "yaucl/strings/string_utils.h"
 #include "yaucl/functional/iterators.h"
 #include "yaucl/structures/setoids/basics.h"

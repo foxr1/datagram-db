@@ -79,7 +79,7 @@ struct delta_updates {
         size_t toRemove = getOrDefault(replacement_map, default_val, default_val);
 //        if ((toRemove == 6) || (default_val == 6))
 //            std::cerr << "EHRE" << std::endl;
-        if (!newIterationInsertedObjects.contains(toRemove))
+        if (!newIterationInsertedObjects.contains(static_cast<uint64_t>(toRemove)))
             removed_objects.insert(toRemove);
         else
             removed_objects.insert(default_val);
@@ -122,7 +122,7 @@ struct delta_updates {
      */
     inline void associateNewToVar(const std::string& name, size_t id){
         newly_inserted_vertices[name].emplace_back(id);
-        newIterationInsertedObjects.add(id);
+        newIterationInsertedObjects.add(static_cast<uint64_t>(id));
     }
     /**
      * Generates a new object from the delta-update

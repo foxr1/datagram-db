@@ -23,7 +23,7 @@ struct GSMIso {
                 DEBUG_ASSERT(ref.first == i);
             }
             for (size_t i = 0, N = O.size(); i<N; i++) {
-                if (!visited.contains(O.at(i).id)) {
+                if (!visited.contains(static_cast<uint64_t>(O.at(i).id))) {
                     topologicalSortUtil(O.at(i).id);
                 }
             }
@@ -40,12 +40,12 @@ struct GSMIso {
         void topologicalSortUtil(size_t v)
         {
             // Mark the current node as visited.
-            visited.add(v);
+            visited.add(static_cast<uint64_t>(v));
 
             // Recur for all the vertices adjacent to this vertex
             for (const auto& [k,u] : O.at(db.getKey(v)).phi) {
                 for (const auto& w : u) {
-                    if (!visited.contains(w.id)) {
+                    if (!visited.contains(static_cast<uint64_t>(w.id))) {
                         ingoing_edges[w.id].insert(v);
                         topologicalSortUtil(w.id);
                     }

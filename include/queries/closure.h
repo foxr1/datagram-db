@@ -58,7 +58,7 @@ void fill_vector_with_case(std::vector<T>& to_fill, const abstract_value& opts) 
 
 
 #include "delta_updates.h"
-#include "scriptv2/ScriptVisitor.h"
+#include "scriptv2/ScriptASTVisitor.h"
 #include "NestedResultTable.h"
 #include <easylogging++.h>
 
@@ -197,7 +197,7 @@ struct closure {
                 g.g.topologicalSortUtil(start_from, visited, Stack);
             }
             for (size_t i = 0; i < g.g.V_size; i++)
-                if (!visited.contains(i))
+                if (!visited.contains(static_cast<uint64_t>(i)))
                     g.g.topologicalSortUtil(i, visited, Stack);
             bool firstVisit = true;
             std::reverse(Stack.begin(), Stack.end());
@@ -244,7 +244,7 @@ struct closure {
                     size_t offset = label.find('_');
                     size_t no = std::stoull(label.substr(0, offset));
                     std::string labella = label.substr(offset+1);
-                    toRemove[labella].remove(no);
+                    toRemove[labella].remove(static_cast<uint64_t>(no));
                 }
                 std::unordered_set<std::string> removeKeys;
                 for (auto& [keys,v] : obj.phi) {
@@ -616,7 +616,7 @@ struct closure {
             {
                 size_t tmp = updates.replacedWith(id);
 //                auto it = updates.replacement_map.find(id);
-                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(tmp)))
+                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp))))
                     id = tmp;
             }
             if (updates.hasXBeenRemoved(id))
@@ -628,7 +628,7 @@ struct closure {
                         std::vector<size_t> W;
                         for (const auto& id : v) {
                             size_t tmp = updates.replacedWith(id.id);
-                            if (updates.newIterationInsertedObjects.contains(tmp))
+                            if (updates.newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp)))
                                 tmp = id.id;
                             if (!updates.hasXBeenRemoved(tmp)) {
                                 W.emplace_back(tmp);
@@ -653,7 +653,7 @@ struct closure {
                     for (const auto& recotd_ptr : it2->second) {
                         auto currId = recotd_ptr->id_contained;
                         size_t tmp =updates.replacedWith(currId);
-                        if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(tmp)))
+                        if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp))))
                             currId = tmp;
                         if (!updates.hasXBeenRemoved(currId))
                             hasInstance = true;
@@ -690,7 +690,7 @@ struct closure {
             {
                 size_t tmp = updates.replacedWith(id);
 //                auto it = updates.replacement_map.find(id);
-                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(tmp)))
+                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp))))
                     id = tmp;
 //                auto it = updates.replacement_map.find(id);
 //                if (it != updates.replacement_map.end() && (!updates.newIterationInsertedObjects.contains(it->second)))
@@ -783,7 +783,7 @@ struct closure {
             {
                 size_t tmp = updates.replacedWith(id);
 //                auto it = updates.replacement_map.find(id);
-                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(tmp)))
+                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp))))
                     id = tmp;
 //                auto it = updates.replacement_map.find(id);
 //                if (it != updates.replacement_map.end() && (!updates.newIterationInsertedObjects.contains(it->second)))
@@ -813,7 +813,7 @@ struct closure {
             {
                 size_t tmp = updates.replacedWith(id);
 //                auto it = updates.replacement_map.find(id);
-                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(tmp)))
+                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp))))
                     id = tmp;
 //                auto it = updates.replacement_map.find(id);
 //                if (it != updates.replacement_map.end() && (!updates.newIterationInsertedObjects.contains(it->second)))
@@ -850,7 +850,7 @@ private:
         {
             size_t tmp = updates.replacedWith(id);
 //                auto it = updates.replacement_map.find(id);
-                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(tmp)))
+                if (/*it != updates.replacement_map.end() &&*/ (!updates.newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp))))
                     id = tmp;
 //            auto it = updates.replacement_map.find(id);
 //            if (it != updates.replacement_map.end() && (!updates.newIterationInsertedObjects.contains(it->second)))
@@ -1039,7 +1039,7 @@ public:
     inline
     size_t resolve(size_t graph_id, size_t ref) const {
         size_t tmp = delta_updates_per_graph.at(graph_id).replacedWith(ref);
-        if ((!delta_updates_per_graph.at(graph_id).newIterationInsertedObjects.contains(tmp))) {
+        if ((!delta_updates_per_graph.at(graph_id).newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp)))) {
             return tmp;
         } else
             return ref;
@@ -1223,7 +1223,7 @@ public:
         }
         for (auto& ref : object_id) {
            size_t tmp =  delta_updates_per_graph.at(graph_id).replacedWith(ref);
-            if ((!delta_updates_per_graph.at(graph_id).newIterationInsertedObjects.contains(tmp))) {
+            if ((!delta_updates_per_graph.at(graph_id).newIterationInsertedObjects.contains(static_cast<uint64_t>(tmp)))) {
                 ref = tmp;
             }
         }

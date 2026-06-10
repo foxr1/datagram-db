@@ -161,7 +161,7 @@ void Environment::input() {
                         std::ofstream f{output_viz_path / "input.json"};
                         f << "[";
                         for (size_t i = 0, N = json2.size(); i<N; i++) {
-                            neue[idx2-1].remove(json2.at(i).id);
+                            neue[idx2-1].remove(static_cast<uint64_t>(json2.at(i).id));
                             json2.at(i).out_json(f);
                             if (i != (N-1)) f <<", " << std::endl;
                         }
@@ -253,7 +253,7 @@ void Environment::output() {
                             for (size_t i = 0, N = json.size(); i<N; i++) {
                                 const auto& o = json.at(i);
                                 o.out_json(f);
-                                neue[idx-1].add(o.id);
+                                neue[idx-1].add(static_cast<uint64_t>(o.id));
                                 if (i != (N-1)) f <<", " << std::endl;
                             }
                             f << "]";

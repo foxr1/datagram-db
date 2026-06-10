@@ -74,10 +74,10 @@ OrderedSet& operator=(OrderedSet&& x) { set = std::move(x.set); cardo = x.cardo;
         return cardo;
     }
     bool contains(size_t x) const {
-        return set.contains(x);
+        return set.contains(static_cast<uint64_t>(x));
     }
     void add(size_t x) {
-        if (set.addChecked(x) && (cardo < set.cardinality()))
+        if (set.addChecked(static_cast<uint64_t>(x)) && (cardo < set.cardinality()))
             cardo = set.cardinality();
     }
     OrderedSet& operator&=(const OrderedSet& x) {
@@ -280,16 +280,16 @@ struct NestedResultTable {
         for (size_t i = 0; i<N; i++) {
             switch(cmp) {
                 case CFNRT_EQ:
-                    if ((get(i) == x.get(i))) result.add(i);
+                    if ((get(i) == x.get(i))) result.add(static_cast<uint64_t>(i));
                     break;
                 case CFNRT_NEQ:
-                    if ((get(i) != x.get(i))) result.add(i);
+                    if ((get(i) != x.get(i))) result.add(static_cast<uint64_t>(i));
                     break;
                 case CFNRT_LT:
-                    if ((get(i) < x.get(i)))result.add(i);
+                    if ((get(i) < x.get(i)))result.add(static_cast<uint64_t>(i));
                     break;
                 case CFNRT_LEQ:
-                    if ((get(i) <= x.get(i)))result.add(i);
+                    if ((get(i) <= x.get(i)))result.add(static_cast<uint64_t>(i));
                     break;
             }
         }

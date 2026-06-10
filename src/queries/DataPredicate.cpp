@@ -22,6 +22,7 @@
 //
 
 #include <iomanip>
+#include <sstream>
 #include "queries/DataPredicate.h"
 
 HCQSingleQuery HCQSingleQuery::TRUTH{"Truth"};
