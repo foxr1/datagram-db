@@ -17,24 +17,32 @@
 [submodule "submodules/pybind11"]
 	path = submodules/pybind11
 	url = https://github.com/pybind/pybind11
+	update = none
 [submodule "submodules/rapidjson"]
 	path = submodules/rapidjson
 	url = https://github.com/Tencent/rapidjson
+	update = none
 [submodule "submodules/capnproto"]
 	path = submodules/capnproto
 	url = https://github.com/capnproto/capnproto
+	update = none
 [submodule "submodules/cpp-lru-cache"]
 	path = submodules/cpp-lru-cache
 	url = https://github.com/lamerman/cpp-lru-cache
+	update = none
 [submodule "submodules/itertools"]
 	path = submodules/itertools
 	url = https://github.com/ryanhaining/cppitertools
+	update = none
 [submodule "submodules/tqdm"]
 	path = submodules/tqdm
 	url = https://github.com/tqdm/tqdm.cpp
+	update = none
 [submodule "submodules/zsv"]
 	path = submodules/zsv
 	url = https://github.com/liquidaty/zsv
+	update = none
 [submodule "submodules/simdjson"]
 	path = submodules/simdjson
 	url = https://github.com/simdjson/simdjson
+	update = none
