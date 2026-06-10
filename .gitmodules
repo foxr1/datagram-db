@@ -1,6 +1,7 @@
 [submodule "submodules/yaucl"]
 	path = submodules/yaucl
-	url = https://github.com/datagramdb/yaucl
+	url = https://github.com/foxr1/yaucl.git
+	branch = v5-macos
 [submodule "submodules/tabulate"]
 	path = submodules/tabulate
 	url = https://github.com/p-ranav/tabulate

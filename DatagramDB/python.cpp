@@ -16,7 +16,9 @@
 #include <string>
 #include <iostream>
 #include <configuration/Environment.h>
+#ifdef DATAGRAMDB_NDP
 #include <parser/commons.h>
+#endif
 
 #include <easylogging++.h>
 INITIALIZE_EASYLOGGINGPP
@@ -71,6 +73,7 @@ PYBIND11_MODULE(pydatagramdb, m) {
     .def_readwrite("load_value", &ConfigurationArguments::load_value)
     .def_readwrite("file_or_string_otherwise", &ConfigurationArguments::file_or_string_otherwise);
 
+#ifdef DATAGRAMDB_NDP
     py::enum_<DataFormat>(m, "DataFormat", py::arithmetic())
     .value("NoDataFormat", NoDataFormat)
     .value("PrimaryMemoryDB", PrimaryMemoryDB)
@@ -78,6 +81,7 @@ PYBIND11_MODULE(pydatagramdb, m) {
     .value("GSM", GSM)
     .value("BulkFolder", BulkFolder)
     .export_values();
+#endif
 
     py::enum_<SerialisationType>(m, "SerialisationType", py::arithmetic())
     .value("INPUT_DATA", INPUT_DATA)
@@ -122,6 +126,7 @@ PYBIND11_MODULE(pydatagramdb, m) {
     .def(py::init<Configuration>())
     .def("run", &Environment::run);
 
+#ifdef DATAGRAMDB_NDP
     py::class_<RandomAccessBulkReader>(m, "RandomAccessBulkReader")
     .def(py::init<std::string>())
     .def("get_path", &RandomAccessBulkReader::get_path)
@@ -151,4 +156,5 @@ py::class_<DataFormatHandler>(m, "DataFormatHandler")
     .def("count_databases", &DataFormatHandler::count_databases)
     .def("database_size", &DataFormatHandler::database_size)
     .def("retrieve", &DataFormatHandler::retrieve);
+#endif
 }
